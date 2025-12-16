@@ -1,4 +1,12 @@
-﻿# Parameters
+﻿#----------------------------------------
+# pre-requisites
+#-----------------------------------------
+
+Write-Host "Before running for first time, please go into script file properties and 'unblock' if downloaded from web." -ForegroundColor Yellow
+Write-Host "Call the script file from PowerShell v7" -ForegroundColor Yellow  
+
+
+# Parameters
 
 $MAMcutoff = (Get-Date).AddDays(-30)
 
@@ -58,12 +66,6 @@ Connect-MgGraph -Scopes @(
 ) -NoWelcome
 
 Write-Host "Connectd  to MS Graph successfully!" -ForegroundColor Green 
-# ───────────────────────────────────────────────────────────
-# Connecting to Entra ID
-# ───────────────────────────────────────────────────────────
-
-#Write-Host "Connecting to Entra ID..........." -ForegroundColor Yellow
-#Connect-Entra -Scopes 'AuditLog.Read.All','Directory.Read.All','Device.Read.All'
 
 # ───────────────────────────────────────────────────────────
 # Defining Report Path
@@ -420,12 +422,19 @@ $Entradevicereport = $Entradevicereport | ForEach-Object {
     $intune = if ($key) {$intuneByAadId[$key] } else {$null}     # may be $null
 
     $_ | Add-Member -MemberType NoteProperty -Name 'Device Serial Number'     -Value $intune.SerialNumber      -Force
-    $_ | Add-Member -MemberType NoteProperty -Name 'DEvice OperatingSystem'   -Value $intune.OperatingSystem   -Force
+    $_ | Add-Member -MemberType NoteProperty -Name 'Device OperatingSystem'   -Value $intune.OperatingSystem   -Force
     $_ | Add-Member -MemberType NoteProperty -Name 'Device OSVersion'         -Value $intune.OsVersion         -Force
     $_ | Add-Member -MemberType NoteProperty -Name 'Device Model'             -Value $intune.Model             -Force
     $_ | Add-Member -MemberType NoteProperty -Name 'Device Manufacturer'      -Value $intune.Manufacturer      -Force
     $_ | Add-Member -MemberType NoteProperty -Name 'Intune LastSyncDateTime'  -Value $intune.LastSyncDateTime  -Force
-    $_ | Add-Member -MemberType NoteProperty -Name 'Windows SKU'              -Value $intune.SkuFamily         -Force
+    # Build Windows SKU as "OS OSVersion SkuFamily", skipping blanks
+    $windowsSkuParts = @(
+        if ($intune.OperatingSystem) { $intune.OperatingSystem } else { $_.OS }
+        $intune.OsVersion
+        $intune.SkuFamily
+    ) | Where-Object { $_ }
+
+    $_ | Add-Member -MemberType NoteProperty -Name 'OS Version and SKU' -Value ($windowsSkuParts -join ' ') -Force
     $_
 }
 
