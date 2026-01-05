@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Essentials Report - Sign In</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://alcdn.msauth.net/browser/2.38.1/js/msal-browser.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="signin-card" id="signinSection">
+            <div class="logo-section">
+                <h1>Cyber Essentials Report</h1>
+                <p class="subtitle">Tenant Management Portal</p>
+            </div>
+            
+            <div class="signin-content">
+                <h2>Welcome</h2>
+                <p>Sign in with your Microsoft account to continue</p>
+                
+                <button id="signInButton" class="btn btn-primary">
+                    <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
+                        <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
+                        <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
+                        <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
+                    </svg>
+                    Sign in with Microsoft
+                </button>
+                
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div class="dashboard-container" id="dashboardSection" style="display: none;">
+            <header class="dashboard-header">
+                <div class="header-content">
+                    <h1>Cyber Essentials Report</h1>
+                    <div class="user-info">
+                        <span id="userName">User</span>
+                        <button id="signOutButton" class="btn btn-secondary">Sign Out</button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="dashboard-main">
+                <div class="tenants-section">
+                    <div class="section-header">
+                        <h2>Tenants</h2>
+                        <button id="addTenantButton" class="btn btn-success">+ Add Tenant</button>
+                    </div>
+
+                    <div class="search-box">
+                        <input type="text" id="searchTenants" placeholder="Search tenants...">
+                    </div>
+
+                    <div id="tenantsList" class="tenants-list">
+                        <!-- Tenants will be loaded here dynamically -->
+                    </div>
+                </div>
+
+                <div class="tenant-details" id="tenantDetails" style="display: none;">
+                    <div class="details-header">
+                        <h3 id="selectedTenantName">Tenant Details</h3>
+                        <button id="closeDetailsButton" class="btn-close">×</button>
+                    </div>
+                    
+                    <div class="details-content">
+                        <div class="info-group">
+                            <label>Tenant ID:</label>
+                            <span id="detailTenantId">-</span>
+                        </div>
+                        <div class="info-group">
+                            <label>Domain:</label>
+                            <span id="detailDomain">-</span>
+                        </div>
+                        <div class="info-group">
+                            <label>Status:</label>
+                            <span id="detailStatus" class="status-badge">-</span>
+                        </div>
+                        <div class="info-group">
+                            <label>Last Report:</label>
+                            <span id="detailLastReport">-</span>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="runReportButton" class="btn btn-primary">
+                            <span class="btn-icon">📊</span> Run Report
+                        </button>
+                        <button id="reconsentButton" class="btn btn-warning">
+                            <span class="btn-icon">🔄</span> Reconsent
+                        </button>
+                        <button id="removeTenantButton" class="btn btn-danger">
+                            <span class="btn-icon">🗑️</span> Remove Tenant
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add Tenant Modal -->
+    <div id="addTenantModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Tenant</h3>
+                <button class="btn-close" id="closeModalButton">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="tenantName">Tenant Name</label>
+                    <input type="text" id="tenantName" placeholder="Enter tenant name">
+                </div>
+                <div class="form-group">
+                    <label for="tenantId">Tenant ID</label>
+                    <input type="text" id="tenantId" placeholder="Enter tenant ID (GUID)">
+                </div>
+                <div class="form-group">
+                    <label for="tenantDomain">Domain</label>
+                    <input type="text" id="tenantDomain" placeholder="company.onmicrosoft.com">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelAddButton" class="btn btn-secondary">Cancel</button>
+                <button id="confirmAddButton" class="btn btn-primary">Add Tenant</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
