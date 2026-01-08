@@ -22,7 +22,7 @@ $maximumfunctioncount = '32768'
 
 # 0) Connect once with all the scopes you now need
 
-function Ensure-Module {
+function Install-RequiredModule {
     param([Parameter(Mandatory)][string]$Name)
 
     if (-not (Get-Module -ListAvailable -Name $Name)) {
@@ -46,7 +46,7 @@ $modulesToLoad = @(
 )
 
 foreach ($m in $modulesToLoad) {
-    Ensure-Module -Name $m
+    Install-RequiredModule -Name $m
 }
 
 
@@ -65,7 +65,15 @@ Connect-MgGraph -Scopes @(
     "DeviceManagementApps.Read.All"
 ) -NoWelcome
 
-Write-Host "Connectd  to MS Graph successfully!" -ForegroundColor Green 
+Write-Host "Connected to MS Graph successfully!" -ForegroundColor Green 
+
+
+# ───────────────────────────────────────────────────────────
+# Setting MS Graph request context
+# ───────────────────────────────────────────────────────────
+Write-Host "Setting MS Graph request context..." -ForegroundColor Green 
+Set-MgRequestContext -ClientTimeout 1800 -MaxRetry 8 -RetryDelay 10
+
 
 # ───────────────────────────────────────────────────────────
 # Defining Report Path
@@ -246,7 +254,7 @@ $adminreport = foreach ($a in $assignments) {
             $gUsers = Get-MgGroupTransitiveMember -GroupId $p.Id -All |
                       Where-Object { $_.ODataType -eq '#microsoft.graph.user' }
             foreach ($gU in $gUsers) {
-                $u  = Get‑UserCached $gU.Id
+                $u  = Get-UserCached $gU.Id
                 $si = $u.AdditionalProperties.signInActivity
                 [pscustomobject]@{
                     DisplayName           = $u.DisplayName
@@ -515,7 +523,7 @@ $report = $csvText | ConvertFrom-Csv
 
 $recentmamadevices = $report | Where-Object { [DateTime]$_.LastSync -ge $MAMcutoff }
 
-$mamdeviceresults = $recentmamadevices | Where-Object {$_.ManagementType -EQ 'unmanaged' }|Sort-Object AADDeviceID -Unique
+$mamdeviceresults = $recentmamadevices | Where-Object {$_.ManagementType -EQ 'unmanaged' }#|Sort-Object AADDeviceID -Unique
 
 
 $mamdeviceresults | Export-Excel -Path $reportcsv -WorksheetName 'MAM Devices' `
