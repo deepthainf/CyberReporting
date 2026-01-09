@@ -63,6 +63,7 @@ Connect-MgGraph -Scopes @(
     "RoleManagement.Read.Directory"
     "DeviceManagementManagedDevices.Read.All"
     "DeviceManagementApps.Read.All"
+    "Application.Read.All" # App registrations
 ) -NoWelcome
 
 Write-Host "Connected to MS Graph successfully!" -ForegroundColor Green 
@@ -636,5 +637,39 @@ $report| Export-Excel -Path $reportcsv -WorksheetName 'Defender Device Status' `
 Write-Host "Querying defender devices completed" -ForegroundColor Green                   
 
 
+ <#
+#############################################################################################################
+Enterpsie apps with SSO type
+##############################################################################################################
+#>
+
+Write-Host "Querying Enterprise Apps SSO type information..........." -ForegroundColor Yellow
 
 
+# Get all Service Principals (Enterprise Apps)
+$apps = Get-MgServicePrincipal -All
+
+# Create an array to store results
+$results = @()
+
+foreach ($app in $apps) {
+    $results += [PSCustomObject]@{
+        DisplayName                = $app.DisplayName
+        AppId                      = $app.AppId
+        ObjectId                   = $app.Id
+        PreferredSingleSignOnMode  = $app.PreferredSingleSignOnMode
+    }
+}
+
+# Output to console
+#$results | Sort-Object DisplayName | Format-Table -AutoSize
+
+$results | Export-Excel -Path $reportcsv -WorksheetName 'Enterprise Apps SSO Status' `
+                       -AutoSize `
+                       -FreezeTopRow `
+                       -BoldTopRow `
+                       -AutoFilter
+
+
+
+Write-Host "Querying enterprise apps with SSO type completed" -ForegroundColor Green    
