@@ -103,6 +103,7 @@ $selectProps = @(
     'signInActivity'
     'Department'
     'JobTitle'
+    'UserType'
 )
 
 
@@ -143,6 +144,7 @@ $userreport = foreach ($u in $users) {
         'Display name'                 = $u.DisplayName
         'UPN'                          = $u.UserPrincipalName
         'Primary SMTP'                 = $u.Mail
+        'User type'                    = $u.UserType
         'Department'                   = $u.Department
         'Job Title'                    = $u.JobTitle
         'Sign-in status'               = $(if ($u.AccountEnabled) { 'Allowed' } else { 'Blocked' })
