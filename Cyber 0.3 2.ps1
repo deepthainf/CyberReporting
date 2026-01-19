@@ -658,6 +658,8 @@ foreach ($app in $apps) {
         AppId                      = $app.AppId
         ObjectId                   = $app.Id
         PreferredSingleSignOnMode  = $app.PreferredSingleSignOnMode
+        ApplicationType            = $app.servicePrincipalType
+        Homepage                   = $app.homepage
     }
 }
 
