@@ -43,6 +43,7 @@ $modulesToLoad = @(
     'ImportExcel'
     'Microsoft.Graph.Devices.CorporateManagement'
     'Microsoft.Graph.DeviceManagement'
+    'ExchangeOnlineManagement'
 )
 
 foreach ($m in $modulesToLoad) {
@@ -68,6 +69,10 @@ Connect-MgGraph -Scopes @(
 
 Write-Host "Connected to MS Graph successfully!" -ForegroundColor Green 
 
+Write-Host "Connecting to Exchange Online..........." -ForegroundColor Yellow 
+Connect-ExchangeOnline -ErrorAction Stop -ShowBanner:$false -WarningAction SilentlyContinue
+Write-Host "Connected to Exchange Online successfully!" -ForegroundColor Green
+
 
 # ───────────────────────────────────────────────────────────
 # Setting MS Graph request context
@@ -89,6 +94,28 @@ User Details
 ##############################################################################################################
 #>
 Write-Host "Querying user details..........." -ForegroundColor Yellow
+
+# --- Shared mailbox lookup (Exchange Online) ---
+
+Write-Host "Querying shared mailboxes..........." -ForegroundColor Yellow
+
+$sharedMbxs = Get-EXOMailbox -ResultSize Unlimited -RecipientTypeDetails SharedMailbox `
+    -Properties ExternalDirectoryObjectId,PrimarySmtpAddress,DisplayName
+
+# Keyed by Entra ID object id (GUID)
+$sharedMbxLookup = @{}
+foreach ($m in $sharedMbxs) {
+    if ($m.ExternalDirectoryObjectId) {
+        $sharedMbxLookup[$m.ExternalDirectoryObjectId.ToString()] = [PSCustomObject]@{
+            SharedMailboxName = $m.DisplayName
+            SharedMailboxSmtp = $m.PrimarySmtpAddress.ToString()
+        }
+    }
+}
+
+
+
+
 
 # 1) Pull user core + sign-in data in a single call
 $selectProps = @(
@@ -138,6 +165,7 @@ $userreport = foreach ($u in $users) {
         ForEach-Object { $skuMap[$_.SkuId] } |
         Sort-Object -Unique
 
+$sharedInfo = $sharedMbxLookup[$u.Id] # match on Entra object id (GUID), not UPN, to find if this user is a shared mailbox reference account
  $auth = $authLookup[$u.UserPrincipalName]
 
     [PSCustomObject]@{
@@ -148,6 +176,7 @@ $userreport = foreach ($u in $users) {
         'Department'                   = $u.Department
         'Job Title'                    = $u.JobTitle
         'Sign-in status'               = $(if ($u.AccountEnabled) { 'Allowed' } else { 'Blocked' })
+        'Shared mailbox reference account' = $(if ($sharedInfo) { 'Yes' } else { 'No' })
         'Assigned licences'            = $licences -join '; '
         'Account type'                 = $(if ($u.OnPremisesSyncEnabled -or $u.OnPremisesImmutableId) { 'Synced' } else { 'Cloud only' })
         'Registered auth methods'      = $auth.MethodsRegistered
